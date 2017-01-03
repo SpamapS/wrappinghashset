@@ -3,27 +3,25 @@ use std::cmp::Eq;
 use std::collections::HashSet;
 use std::hash::Hash;
 use std::iter::Iterator;
-use std::marker::PhantomData;
 
 /// A hash set that remembers the last key it returned with its iterator
 /// it will wrap around and only return all of the keys once.
 ///
 #[derive(Debug)]
-pub struct WrappingHashSet<'a, T:'a>
+pub struct WrappingHashSet<T>
     where T:Eq + Hash {
     hashset: HashSet<T>,
     keys: Vec<T>,
     pos: usize,
     count: usize,
-    phantom: PhantomData<&'a T>,
 }
 
-pub struct Iter<'i, 'a: 'i, T:'a>
+pub struct Iter<'i, T: 'i>
     where T:Eq + Hash {
-    whs: &'i mut WrappingHashSet<'a, T>,
+    whs: &'i mut WrappingHashSet<T>,
 }
 
-impl <'i, 'a, T:'a>Iterator for Iter<'i, 'a, T>
+impl <'i, T>Iterator for Iter<'i, T>
     where T:Eq + Hash + Clone {
     type Item = T;
     fn next(&mut self) -> Option<T> {
@@ -38,19 +36,18 @@ impl <'i, 'a, T:'a>Iterator for Iter<'i, 'a, T>
     }
 }
 
-impl <'a, T:'a>WrappingHashSet<'a, T>
+impl <T>WrappingHashSet<T>
     where T:Eq + Hash + Clone {
-    pub fn new() -> WrappingHashSet<'a, T> {
+    pub fn new() -> WrappingHashSet<T> {
         WrappingHashSet {
             hashset: HashSet::new(),
             keys: Vec::new(),
             pos: 0,
             count: 0,
-            phantom: PhantomData,
         }
     }
 
-    pub fn iter<'i>(&'i mut self) -> Iter<'i, 'a, T> {
+    pub fn iter<'i>(&'i mut self) -> Iter<'i, T> {
         Iter {
             whs: self,
         }
