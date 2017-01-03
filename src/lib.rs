@@ -39,7 +39,7 @@ impl <'a>WrappingHashSet<'a> {
         }
     }
 
-    fn iter<'i>(&'a mut self) -> Iter<'i, 'a> {
+    fn iter<'i>(&'i mut self) -> Iter<'i, 'a> {
         Iter {
             whs: self,
         }
@@ -68,14 +68,15 @@ impl <'a>WrappingHashSet<'a> {
 #[test]
 fn test_wrapping_hashset() {
     let mut hs = WrappingHashSet::new();
+    let mut keys_as_found = Vec::new();
     hs.insert("foo");
     hs.insert("bar");
     hs.insert("baz");
     {
-        let mut z = Vec::new();
         for i in hs.iter() {
-            z.push(i);
+            keys_as_found.push(i);
         }
+        let mut z = keys_as_found.clone();
         z.sort();
         
         assert_eq!("bar", z[0]);
@@ -85,13 +86,31 @@ fn test_wrapping_hashset() {
     // Now test wrap
     {
         for i in hs.iter() {
-            assert_eq!("bar", i);
+            assert_eq!(keys_as_found[0], i);
             break;
         }
     }
     {
         for i in hs.iter() {
-            assert_eq!("baz", i);
+            assert_eq!(keys_as_found[1], i);
+            break;
+        }
+    }
+    {
+        for i in hs.iter() {
+            assert_eq!(keys_as_found[2], i);
+            break;
+        }
+    }
+    {
+        for i in hs.iter() {
+            panic!("We should have gotten NONE");
+            break;
+        }
+    }
+    {
+        for i in hs.iter() {
+            assert_eq!(keys_as_found[0], i);
             break;
         }
     }
