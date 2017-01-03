@@ -4,14 +4,15 @@ use std::collections::HashSet;
 /// A hash set that remembers the last key it returned with its iterator
 /// it will wrap around and only return all of the keys once.
 ///
-struct WrappingHashSet<'a> {
+#[derive(Debug)]
+pub struct WrappingHashSet<'a> {
     hashset: HashSet<&'a str>,
     keys: Vec<&'a str>,
     pos: usize,
     count: usize,
 }
 
-struct Iter<'i, 'a: 'i> {
+pub struct Iter<'i, 'a: 'i> {
     whs: &'i mut WrappingHashSet<'a>,
 }
 
@@ -30,7 +31,7 @@ impl <'i, 'a>Iterator for Iter<'i, 'a> {
 }
 
 impl <'a>WrappingHashSet<'a> {
-    fn new() -> WrappingHashSet<'a> {
+    pub fn new() -> WrappingHashSet<'a> {
         WrappingHashSet {
             hashset: HashSet::new(),
             keys: Vec::new(),
@@ -39,13 +40,13 @@ impl <'a>WrappingHashSet<'a> {
         }
     }
 
-    fn iter<'i>(&'i mut self) -> Iter<'i, 'a> {
+    pub fn iter<'i>(&'i mut self) -> Iter<'i, 'a> {
         Iter {
             whs: self,
         }
     }
 
-    fn insert(&mut self, key: &'a str) -> bool {
+    pub fn insert(&mut self, key: &'a str) -> bool {
         if self.hashset.insert(key) {
             self.keys.push(key);
             return true
@@ -53,7 +54,7 @@ impl <'a>WrappingHashSet<'a> {
         return false
     }
 
-    fn remove(&mut self, key: &'a str) -> bool {
+    pub fn remove(&mut self, key: &'a str) -> bool {
         if self.hashset.remove(key) {
             self.keys = Vec::new();
             for key in self.hashset.iter() {
