@@ -105,8 +105,7 @@ fn test_wrapping_hashset() {
     }
     {
         for i in hs.iter() {
-            panic!("We should have gotten NONE");
-            break;
+            panic!("We should have gotten NONE, instead we got {:?}", i);
         }
     }
     {
