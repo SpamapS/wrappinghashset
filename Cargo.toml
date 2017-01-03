@@ -1,0 +1,6 @@
+[package]
+name = "iters"
+version = "0.1.0"
+authors = ["clint <clint@fewbar.com>"]
+
+[dependencies]
