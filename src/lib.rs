@@ -1,24 +1,32 @@
-use std::iter::Iterator;
+use std::clone::Clone;
+use std::cmp::Eq;
 use std::collections::HashSet;
+use std::hash::Hash;
+use std::iter::Iterator;
+use std::marker::PhantomData;
 
 /// A hash set that remembers the last key it returned with its iterator
 /// it will wrap around and only return all of the keys once.
 ///
 #[derive(Debug)]
-pub struct WrappingHashSet<'a> {
-    hashset: HashSet<&'a str>,
-    keys: Vec<&'a str>,
+pub struct WrappingHashSet<'a, T:'a>
+    where T:Eq + Hash {
+    hashset: HashSet<T>,
+    keys: Vec<T>,
     pos: usize,
     count: usize,
+    phantom: PhantomData<&'a T>,
 }
 
-pub struct Iter<'i, 'a: 'i> {
-    whs: &'i mut WrappingHashSet<'a>,
+pub struct Iter<'i, 'a: 'i, T:'a>
+    where T:Eq + Hash {
+    whs: &'i mut WrappingHashSet<'a, T>,
 }
 
-impl <'i, 'a>Iterator for Iter<'i, 'a> {
-    type Item = &'a str;
-    fn next(&mut self) -> Option<&'a str> {
+impl <'i, 'a, T:'a>Iterator for Iter<'i, 'a, T>
+    where T:Eq + Hash + Clone {
+    type Item = T;
+    fn next(&mut self) -> Option<T> {
        self.whs.pos += 1;
        self.whs.count += 1;
        if self.whs.count > self.whs.hashset.len() {
@@ -26,39 +34,41 @@ impl <'i, 'a>Iterator for Iter<'i, 'a> {
            self.whs.count = 0;
            return None;
        }
-       Some(self.whs.keys[self.whs.pos - 1])
+       Some(self.whs.keys[self.whs.pos - 1].clone())
     }
 }
 
-impl <'a>WrappingHashSet<'a> {
-    pub fn new() -> WrappingHashSet<'a> {
+impl <'a, T:'a>WrappingHashSet<'a, T>
+    where T:Eq + Hash + Clone {
+    pub fn new() -> WrappingHashSet<'a, T> {
         WrappingHashSet {
             hashset: HashSet::new(),
             keys: Vec::new(),
             pos: 0,
             count: 0,
+            phantom: PhantomData,
         }
     }
 
-    pub fn iter<'i>(&'i mut self) -> Iter<'i, 'a> {
+    pub fn iter<'i>(&'i mut self) -> Iter<'i, 'a, T> {
         Iter {
             whs: self,
         }
     }
 
-    pub fn insert(&mut self, key: &'a str) -> bool {
-        if self.hashset.insert(key) {
+    pub fn insert(&mut self, key: T) -> bool {
+        if self.hashset.insert(key.clone()) {
             self.keys.push(key);
             return true
         }
         return false
     }
 
-    pub fn remove(&mut self, key: &'a str) -> bool {
+    pub fn remove(&mut self, key: &'a T) -> bool {
         if self.hashset.remove(key) {
             self.keys = Vec::new();
-            for key in self.hashset.iter() {
-                self.keys.push(key)
+            for k in self.hashset.iter() {
+                self.keys.push(k.clone())
             }
             return true
         }
@@ -68,8 +78,8 @@ impl <'a>WrappingHashSet<'a> {
 
 #[test]
 fn test_wrapping_hashset() {
-    let mut hs = WrappingHashSet::new();
-    let mut keys_as_found = Vec::new();
+    let mut hs: WrappingHashSet<&str> = WrappingHashSet::new();
+    let mut keys_as_found: Vec<&str> = Vec::new();
     hs.insert("foo");
     hs.insert("bar");
     hs.insert("baz");
