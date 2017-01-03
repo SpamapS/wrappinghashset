@@ -1,5 +1,5 @@
 [package]
-name = "iters"
+name = "wrappinghashset"
 version = "0.1.0"
 authors = ["clint <clint@fewbar.com>"]
 
