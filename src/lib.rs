@@ -64,7 +64,7 @@ impl <'a, T:'a>WrappingHashSet<'a, T>
         return false
     }
 
-    pub fn remove(&mut self, key: &'a T) -> bool {
+    pub fn remove<'b>(&mut self, key: &'b T) -> bool {
         if self.hashset.remove(key) {
             self.keys = Vec::new();
             for k in self.hashset.iter() {
@@ -123,5 +123,14 @@ fn test_wrapping_hashset() {
             assert_eq!(keys_as_found[0], i);
             break;
         }
+    }
+    hs.remove(&keys_as_found[1]);
+    {
+        let mut j = 0;
+        for i in hs.iter() {
+            assert_ne!(keys_as_found[1], i);
+            j = j + 1;
+        }
+        assert_eq!(1, j);
     }
 }
