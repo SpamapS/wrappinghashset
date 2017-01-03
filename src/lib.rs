@@ -1,33 +1,67 @@
-use std::iter::{Cycle, Take};
+use std::iter::Iterator;
 use std::collections::HashSet;
-use std::collections::hash_set::Iter;
 
 /// A hash set that remembers the last key it returned with its iterator
 /// it will wrap around and only return all of the keys once.
 ///
 struct WrappingHashSet<'a> {
     hashset: HashSet<&'a str>,
-    cycle: Option<Cycle<Iter<'a, &'a str>>>,
+    keys: Vec<&'a str>,
+    pos: usize,
+    count: usize,
 }
 
-impl<'a>  WrappingHashSet<'a> {
-    fn new() -> WrappingHashSet<'a> {
-        let mut w = WrappingHashSet {
-            hashset: HashSet::new(),
-            cycle: None,
-        };
-        w.cycle = Some(w.hashset.iter().cycle());
-        w
+struct Iter<'i, 'a: 'i> {
+    whs: &'i mut WrappingHashSet<'a>,
+}
 
+impl <'i, 'a>Iterator for Iter<'i, 'a> {
+    type Item = &'a str;
+    fn next(&mut self) -> Option<&'a str> {
+       self.whs.pos += 1;
+       self.whs.count += 1;
+       if self.whs.count > self.whs.hashset.len() {
+           self.whs.pos = 0;
+           self.whs.count = 0;
+           return None;
+       }
+       Some(self.whs.keys[self.whs.pos - 1])
     }
-    fn iter(&mut self) -> Take<Cycle<Iter<&'a str>>> {
-        self.cycle.unwrap().take(self.hashset.len())
+}
+
+impl <'a>WrappingHashSet<'a> {
+    fn new() -> WrappingHashSet<'a> {
+        WrappingHashSet {
+            hashset: HashSet::new(),
+            keys: Vec::new(),
+            pos: 0,
+            count: 0,
+        }
     }
+
+    fn iter<'i>(&'a mut self) -> Iter<'i, 'a> {
+        Iter {
+            whs: self,
+        }
+    }
+
     fn insert(&mut self, key: &'a str) -> bool {
-        self.hashset.insert(key)
+        if self.hashset.insert(key) {
+            self.keys.push(key);
+            return true
+        }
+        return false
     }
+
     fn remove(&mut self, key: &'a str) -> bool {
-        self.hashset.remove(key)
+        if self.hashset.remove(key) {
+            self.keys = Vec::new();
+            for key in self.hashset.iter() {
+                self.keys.push(key)
+            }
+            return true
+        }
+        return false
     }
 }
 
@@ -38,10 +72,9 @@ fn test_wrapping_hashset() {
     hs.insert("bar");
     hs.insert("baz");
     {
-        let mut x = hs.iter();
         let mut z = Vec::new();
-        for i in x {
-            z.push(*i);
+        for i in hs.iter() {
+            z.push(i);
         }
         z.sort();
         
@@ -50,12 +83,16 @@ fn test_wrapping_hashset() {
         assert_eq!("foo", z[2]);
     }
     // Now test wrap
-    for i in hs.iter() {
-        assert_eq!("bar", *i);
-        break;
+    {
+        for i in hs.iter() {
+            assert_eq!("bar", i);
+            break;
+        }
     }
-    for i in hs.iter() {
-        assert_eq!("baz", *i);
-        break;
+    {
+        for i in hs.iter() {
+            assert_eq!("baz", i);
+            break;
+        }
     }
 }
