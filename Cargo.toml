@@ -1,6 +1,9 @@
 [package]
 name = "wrappinghashset"
+description = "A Hashset that remembers the last key it returned with its iterator and subsequently will wrap around and only return all of the keys once per call. This is useful if you want to use a set both via hashing, and iterate over the members as a round-robin list."
 version = "0.4.0"
-authors = ["clint <clint@fewbar.com>"]
+license = "Apache 2.0"
+homepage = "https://github.com/SpamapS/wrappinghashset"
+authors = ["Clint Byrum <clint@fewbar.com>"]
 
 [dependencies]
