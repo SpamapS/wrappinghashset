@@ -1,4 +1,4 @@
-/*   
+/*
  * Copyright 2017 Clint Byrum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,9 @@ use std::iter::Iterator;
 ///
 #[derive(Debug)]
 pub struct WrappingHashSet<T>
-    where T:Eq + Hash {
+where
+    T: Eq + Hash,
+{
     hashset: HashSet<T>,
     keys: Vec<T>,
     pos: usize,
@@ -32,27 +34,33 @@ pub struct WrappingHashSet<T>
 }
 
 pub struct Iter<'i, T: 'i>
-    where T:Eq + Hash {
+where
+    T: Eq + Hash,
+{
     whs: &'i mut WrappingHashSet<T>,
 }
 
-impl <'i, T>Iterator for Iter<'i, T>
-    where T:Eq + Hash + Clone {
+impl<'i, T> Iterator for Iter<'i, T>
+where
+    T: Eq + Hash + Clone,
+{
     type Item = T;
     fn next(&mut self) -> Option<T> {
-       self.whs.pos += 1;
-       self.whs.count += 1;
-       if self.whs.count > self.whs.hashset.len() {
-           self.whs.pos = 0;
-           self.whs.count = 0;
-           return None;
-       }
-       Some(self.whs.keys[self.whs.pos - 1].clone())
+        self.whs.pos += 1;
+        self.whs.count += 1;
+        if self.whs.count > self.whs.hashset.len() {
+            self.whs.pos = 0;
+            self.whs.count = 0;
+            return None;
+        }
+        Some(self.whs.keys[self.whs.pos - 1].clone())
     }
 }
 
-impl <T>WrappingHashSet<T>
-    where T:Eq + Hash + Clone {
+impl<T> WrappingHashSet<T>
+where
+    T: Eq + Hash + Clone,
+{
     pub fn new() -> WrappingHashSet<T> {
         WrappingHashSet {
             hashset: HashSet::new(),
@@ -63,17 +71,15 @@ impl <T>WrappingHashSet<T>
     }
 
     pub fn iter<'i>(&'i mut self) -> Iter<'i, T> {
-        Iter {
-            whs: self,
-        }
+        Iter { whs: self }
     }
 
     pub fn insert(&mut self, key: T) -> bool {
         if self.hashset.insert(key.clone()) {
             self.keys.push(key);
-            return true
+            return true;
         }
-        return false
+        return false;
     }
 
     pub fn remove<'b>(&mut self, key: &'b T) -> bool {
@@ -82,9 +88,9 @@ impl <T>WrappingHashSet<T>
             for k in self.hashset.iter() {
                 self.keys.push(k.clone())
             }
-            return true
+            return true;
         }
-        return false
+        return false;
     }
 }
 
@@ -101,7 +107,7 @@ fn test_wrapping_hashset() {
         }
         let mut z = keys_as_found.clone();
         z.sort();
-        
+
         assert_eq!("bar", z[0]);
         assert_eq!("baz", z[1]);
         assert_eq!("foo", z[2]);
